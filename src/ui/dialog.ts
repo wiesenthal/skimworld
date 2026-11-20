@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import type { Npc } from '../game/npcs';
-import { api, type ChatContext } from '../net/api';
+import { api, isUnlocked as apiUnlocked, type ChatContext } from '../net/api';
 import { micSupported, record, type Recording } from './mic';
 import { CanvasPanel, wrap } from './panel';
 
@@ -81,7 +81,7 @@ export class Dialog {
   }
 
   get canSpeak() {
-    return micSupported() || !!SR;
+    return (micSupported() && apiUnlocked()) || !!SR;
   }
 
   start(npc: Npc) {
@@ -164,7 +164,8 @@ export class Dialog {
     this.speakSeq++;
     synth()?.cancel();
     this.voiceOut?.stop();
-    if (!micSupported()) return this.listenBrowser();
+    // Locked (no access key): the server won't transcribe, so use the browser's own recognition if it has one.
+    if (!micSupported() || !apiUnlocked()) return this.listenBrowser();
     const npc = this.npc;
     this.recordingStarting = true;
     this.stopWhenStarted = false;
@@ -317,6 +318,7 @@ export class Dialog {
       log.appendChild(d);
     }
     const micBtn = this.el.querySelector('.mic') as HTMLButtonElement;
+    micBtn.style.display = this.canSpeak ? '' : 'none';
     micBtn.textContent = this.mic === 'listening' ? '■' : '🎤';
     micBtn.classList.toggle('on', this.mic === 'listening');
     log.scrollTop = log.scrollHeight;

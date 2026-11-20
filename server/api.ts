@@ -4,6 +4,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { PERSONAS, persona } from '../shared/npcs.js';
 import { advanceLives, aiStatus, chat, type ChatContext } from './brain.js';
 import { flushMemory, loadMemory, memory, resetMemory } from './memory.js';
+import { unlocked } from './access.js';
 import { hearLine, MAX_AUDIO_BYTES, signLine, speakLine, verifyLine, voiceEnabled } from './voice.js';
 
 export function json(res: ServerResponse, code: number, body: unknown) {
@@ -57,7 +58,11 @@ export async function handleApi(req: IncomingMessage, res: ServerResponse): Prom
 }
 
 async function route(url: URL, req: IncomingMessage, res: ServerResponse) {
-    if (url.pathname === '/api/health') return json(res, 200, { ok: true, ...aiStatus(), voice: voiceEnabled(), clock: memory().lastTick });
+    const open = unlocked(req);
+    if (url.pathname === '/api/health') {
+      const ai = aiStatus();
+      return json(res, 200, { ok: true, ...ai, ai: ai.ai && open, locked: !open, voice: voiceEnabled() && open, clock: memory().lastTick });
+    }
 
     if (url.pathname === '/api/npc/chat' && req.method === 'POST') {
       const b = await body<{ npcId: string; message: string; context: ChatContext }>(req);
@@ -65,15 +70,16 @@ async function route(url: URL, req: IncomingMessage, res: ServerResponse) {
       if (inflight > 6) return json(res, 429, { error: 'busy' });
       inflight++;
       try {
-        const out = await chat(b.npcId, String(b.message ?? ''), b.context ?? { hour: 12, day: 1 });
+        const out = await chat(b.npcId, String(b.message ?? ''), b.context ?? { hour: 12, day: 1 }, open);
         // Signed so the voice route only ever speaks lines this server wrote.
-        return json(res, 200, { ...out, voiceSig: signLine(b.npcId, out.reply) });
+        return json(res, 200, open ? { ...out, voiceSig: signLine(b.npcId, out.reply) } : out);
       } finally {
         inflight--;
       }
     }
 
     if (url.pathname === '/api/npc/voice' && req.method === 'POST') {
+      if (!open) return json(res, 401, { error: 'locked' });
       const b = await body<{ npcId: string; text: string; sig: string }>(req);
       const text = String(b.text ?? '');
       if (!PERSONAS.some((p) => p.id === b.npcId) || !verifyLine(b.npcId, text, String(b.sig ?? ''))) return json(res, 403, { error: 'unsigned line' });
@@ -86,6 +92,7 @@ async function route(url: URL, req: IncomingMessage, res: ServerResponse) {
 
     // Freeform talk: the player's recorded line in, its text out. The client then sends that to /api/npc/chat.
     if (url.pathname === '/api/npc/hear' && req.method === 'POST') {
+      if (!open) return json(res, 401, { error: 'locked' });
       const audio = await rawBody(req, MAX_AUDIO_BYTES).catch(() => null);
       if (!audio) return json(res, 413, { error: 'too long' });
       const type = String(req.headers['content-type'] ?? 'audio/webm').split(';')[0].trim();
@@ -95,6 +102,8 @@ async function route(url: URL, req: IncomingMessage, res: ServerResponse) {
     }
 
     if (url.pathname === '/api/world/tick' && req.method === 'POST') {
+      // Only the owner's sessions move the shared world forward (a tick is a paid Claude call).
+      if (!open) return json(res, 200, { ran: false, events: 0 });
       const b = await body<{ day: number; hour: number }>(req);
       const out = await advanceLives(Number(b.day) || 1, Number(b.hour) || 0);
       return json(res, 200, out);

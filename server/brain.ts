@@ -146,12 +146,15 @@ What you've seen them do just now: ${ctx.feats?.length ? ctx.feats.join('; ') : 
 Their gear: ${ctx.gear?.length ? ctx.gear.join(', ') : 'just a skimboard'}.`;
 }
 
-export async function chat(npcId: string, message: string, ctx: ChatContext): Promise<ChatReply> {
+export async function chat(npcId: string, message: string, ctx: ChatContext, allowAI = true): Promise<ChatReply> {
   const p = persona(npcId);
   const m = npcMemory(npcId);
   const opening = message.trim() === '';
   const said = opening ? '(The visitor skims up and stops beside you. Greet them.)' : message.slice(0, 400);
 
+  // Locked visitors get scripted lines that aren't saved, so strangers can't write into the
+  // shared memory that the owner's Claude-driven chats read.
+  if (!allowAI) return offlineReply(p, said, opening, false);
   if (!client || !underBudget()) return offlineReply(p, said, opening);
 
   const history: Anthropic.Beta.BetaMessageParam[] = [];
@@ -310,7 +313,7 @@ const OFFLINE_SUGGESTIONS = [
   ['How did you learn to ride?', 'Where can I get a sail?', 'What do you do all day?'],
 ];
 
-function offlineReply(p: Persona, said: string, opening: boolean): ChatReply {
+function offlineReply(p: Persona, said: string, opening: boolean, remember = true): ChatReply {
   const m = npcMemory(p.id);
   const lower = said.toLowerCase();
   let reply: string;
@@ -322,8 +325,10 @@ function offlineReply(p: Persona, said: string, opening: boolean): ChatReply {
   else if (/regatta/.test(lower)) reply = 'The Skim Regatta! Races, a wave heat, a design prize — and a party at the Lumen Club after.';
   else if (/new|life|up to|doing/.test(lower)) reply = m.currentLife;
   else reply = [p.currentLife, p.goals, p.backstory.split('.')[0] + '.'][m.history.length % 3];
-  m.history.push({ role: 'user', text: said, ts: Date.now() }, { role: 'assistant', text: reply, ts: Date.now() });
-  save();
+  if (remember) {
+    m.history.push({ role: 'user', text: said, ts: Date.now() }, { role: 'assistant', text: reply, ts: Date.now() });
+    save();
+  }
   return { reply, mood: 'warm', suggestions: OFFLINE_SUGGESTIONS[m.history.length % 3], ai: false };
 }
 

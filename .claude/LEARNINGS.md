@@ -109,3 +109,10 @@ Friction points and the signposts that got past them. Read before working here.
 - Drop boosts multiply speed, but `dropTaper(sp) = 1/(1+(sp/28)^2)` shrinks the bonus at speed. Well-timed chains reach ~120 km/h in 6 s and level off near 150 km/h; kicks at the top of the hop build far less.
 - Test bots must kick by `airTime`: "height above the board < 0.3" fires too early, because a flat hop only rises ~0.35 m.
 - Keep the Mac quiet when testing in the browser pane: suspend the game audio and close the tab afterwards. Miles had to ask another session to stop the Skimworld music.
+
+## Owner access key (Nov 20, 2026)
+- Miles: "tighten up the skimworld api unless they have my authorization key". The repo went public, and the hosted API spent his Claude and AI Gateway credits for anyone.
+- `server/access.ts` `unlocked(req)` gates chat (scripted fallback, not saved), voice and hear (401), and world tick (`ran: false`). It fails closed on Vercel when `SKIM_ACCESS_KEY` is missing.
+- The key is in `.env.local` (`SKIM_ACCESS_KEY`) and on Vercel production. Unlock a headset with `https://skimworld.vercel.app/#key=<key>`; the Review Hub portal URL carries it.
+- Scripted replies used to push into shared `npcMemory().history`, which Claude chats later read; locked visitors must not write memory.
+- `vite.config.ts` proxies `/api` to `NPC_PORT` (default 8787), so a test server can run beside another chat's dev server on 8787.

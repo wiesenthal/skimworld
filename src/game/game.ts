@@ -233,7 +233,7 @@ export class Game {
         while (this.day * 24 + this.hour < last + 6) this.day++;
       }
       this.clockReady = true;
-      this.aiText = !h ? 'villager server offline — run npm run dev' : h.ai ? `villager minds: Claude (${h.model})` : 'villagers scripted — add ANTHROPIC_API_KEY for live minds';
+      this.aiText = !h ? 'villager server offline — run npm run dev' : h.ai ? `villager minds: Claude (${h.model})` : h.locked ? 'villagers scripted' : 'villagers scripted — add ANTHROPIC_API_KEY for live minds';
     });
     void this.refreshNews();
     (window as unknown as { __skim: Game }).__skim = this;

@@ -38,6 +38,7 @@ The live site is the Vercel project `skimworld` on the **miles-wiesenthals-proje
 - The built game is served statically from `dist/`. Every `/api/*` request is rewritten to one function, `api/index.ts`, which runs the same handler as the local server (`server/api.ts`).
 - Villager memory lives in a private Vercel Blob store, `skimworld-memory`: each request loads it and writes it back. Locally it stays in `server/data/memory.json`.
 - `ANTHROPIC_API_KEY` is a sensitive production env var. Spend guards: `SKIM_DAILY_CALLS` (default 400 Claude calls per UTC day, then scripted lines) and `SKIM_TICK_MINUTES` (default 10, the minimum real time between life ticks).
+- **Owner access key.** Claude villagers, server voice, speech-to-text and life ticks only run for requests carrying the `x-skim-key` header matching `SKIM_ACCESS_KEY` (a sensitive production env var). Everyone else gets the full game with scripted villagers and the browser's own voice, and their chats aren't saved into shared villager memory. To unlock a browser or headset, open the game once as `https://skimworld.vercel.app/#key=<SKIM_ACCESS_KEY>`: the key is kept in that browser's local storage and removed from the address bar. If `SKIM_ACCESS_KEY` is unset on Vercel, everyone is locked; unset locally, everything is unlocked.
 - `/api/world/reset` is refused on Vercel unless the request carries the `x-skim-admin` header matching `SKIM_ADMIN_TOKEN` (not set, so reset is off).
 
 Deploy with:
