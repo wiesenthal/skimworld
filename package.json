@@ -1,0 +1,33 @@
+{
+  "name": "skimworld",
+  "private": true,
+  "license": "MIT",
+  "version": "0.1.0",
+  "description": "Skimworld — a WebXR skimboarding world for Meta Quest 3, with AI-driven villagers.",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n web,npc -c cyan,magenta \"vite\" \"tsx watch server/index.ts\"",
+    "dev:https": "concurrently -k -n web,npc -c cyan,magenta \"HTTPS=1 vite\" \"tsx watch server/index.ts\"",
+    "web": "vite",
+    "server": "tsx server/index.ts",
+    "build": "tsc --noEmit && vite build",
+    "start": "NODE_ENV=production tsx server/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
+    "@vercel/blob": "^2.9.0",
+    "@vercel/oidc": "^3.8.10",
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/three": "^0.187.0",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
+    "concurrently": "^10.0.7",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8"
+  }
+}

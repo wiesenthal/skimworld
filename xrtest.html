@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Skimworld</title>
+    <meta name="description" content="A thin-water skimboarding world for Meta Quest 3." />
+    <link rel="stylesheet" href="/src/style.css" />
+    <script>
+      // Runs before the game module, so even a startup crash on the headset is reported to the
+      // server log (`vercel logs`) and shown on the splash instead of leaving a dead button.
+      window.__skimReport = function (event, detail) {
+        try {
+          fetch('/api/client-log', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ event: event, detail: String(detail || '').slice(0, 400) }), keepalive: true }).catch(function () {});
+        } catch (e) {}
+      };
+      window.__skimBootError = function (msg) {
+        if (window.__skimBootFailed) return;
+        window.__skimBootFailed = true;
+        window.__skimReport('boot-fail', msg);
+        var el = document.getElementById('vrerr');
+        if (el) { el.textContent = 'Skimworld failed to start: ' + msg; el.hidden = false; }
+      };
+      window.addEventListener('error', function (e) {
+        var msg = e.message + ' @' + e.filename + ':' + e.lineno;
+        if (!window.__skim) window.__skimBootError(msg); else window.__skimReport('error', msg);
+      });
+      window.addEventListener('unhandledrejection', function (e) { window.__skimReport('rejection', String(e.reason)); });
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+
+    <div id="hud">
+      <div id="topleft">
+        <div id="region">Tidewell</div>
+        <div id="clock">Day 1 · 16:24</div>
+        <div id="ai"></div>
+      </div>
+      <div id="pops"></div>
+      <div id="hint"></div>
+      <div id="dash">
+        <div class="speedrow"><span id="speed">0</span><span class="unit">km/h</span><span id="mode">on foot</span></div>
+        <div class="bar flow"><div id="flowbar"></div><label>FLOW</label></div>
+        <div class="bar pump"><div id="pumpbar"></div><label>PUMP</label></div>
+        <div id="sail"></div>
+      </div>
+      <div id="help" class="hidden">
+        <h3>Riding</h3>
+        <p><b>W</b> run · <b>E</b> throw board ahead · <b>Space</b> hop on just before you reach it (perfect drop)</p>
+        <p><b>A / D</b> carve · <b>Shift</b> crouch: compress over crests, release into dips to pump</p>
+        <p><b>Space</b> ollie (crouch first to charge) · <b>← →</b> spin in the air · crouch to stomp landings</p>
+        <p><b>E</b> while riding fast: hop off · <b>E</b> again just before you land: kick it forward and land on it for another boost (chain it for scary speed) · slow: kick out</p>
+        <p><b>Space</b> then <b>E</b> mid-hop: toss the board down under you · ride into a skimboat to hop aboard</p>
+        <h3>Gear</h3>
+        <p><b>F</b> sail (get it at Saltglass) · <b>Z / X</b> trim · <b>G</b> glide wing (get it on Highfall) · <b>W/S</b> pitch</p>
+        <h3>World</h3>
+        <p><b>T</b> talk · <b>1-5</b> villages · <b>R</b> respawn · <b>[ ]</b> time · <b>M</b> mute · <b>H</b> help · drag to orbit</p>
+      </div>
+    </div>
+
+    <div id="dialog">
+      <div class="head"><div><div class="who"></div><div class="role"></div></div><span class="badge"></span><button class="close" type="button">✕</button></div>
+      <div class="log"></div>
+      <div class="chips"></div>
+      <form><input type="text" placeholder="Say something…" autocomplete="off" /><button type="button" class="mic" title="Speak">🎤</button><button type="submit">Send</button></form>
+    </div>
+
+    <div id="splash">
+      <div class="card">
+        <h1>SKIMWORLD</h1>
+        <p class="tag">Everything is covered in a thin film of water. You get around by skimboard.</p>
+        <button id="play" type="button">Start riding</button>
+        <p id="vrerr" hidden></p>
+        <button id="flat" type="button" hidden>Ride on the screen instead</button>
+        <p class="small">Desktop: W run · E throw · Space hop on · Shift pump · A/D carve · T talk · H help<br />Quest 3: press <b>Enter VR and ride</b>, swing your arms to run, trigger to throw, really hop on.</p>
+      </div>
+    </div>
+
+    <script type="module">const { XRDevice, metaQuest3 } = await import("https://cdn.jsdelivr.net/npm/iwer@2.8.0/build/iwer.module.js"); window.__xrdev = new XRDevice(metaQuest3); window.__xrdev.installRuntime({ forceInstall: true }); if (location.search.includes("bootcrash")) { Object.defineProperty(window, "speechSynthesis", { get() { throw new Error("test boot crash"); }, configurable: true }); } if (location.search.includes("nospeech")) { Object.defineProperty(window, "speechSynthesis", { value: undefined, configurable: true }); } if (location.search.includes("failonce")) { const orig = navigator.xr.requestSession.bind(navigator.xr); let n = 0; navigator.xr.requestSession = (m, o) => (n++ === 0 ? Promise.reject(new DOMException("test failure", "NotAllowedError")) : orig(m, o)); } await import("/src/main.ts");</script>
+  </body>
+</html>

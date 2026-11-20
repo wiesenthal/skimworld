@@ -1,0 +1,424 @@
+:root {
+  --ink: #f4fbff;
+  --muted: rgba(244, 251, 255, 0.7);
+  --glass: rgba(8, 26, 36, 0.55);
+  --teal: #3fd6c8;
+  --pink: #ff7ae0;
+  --sun: #ffcf6e;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #0b2230;
+  color: var(--ink);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+#app {
+  position: fixed;
+  inset: 0;
+}
+#app canvas {
+  display: block;
+}
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+}
+#topleft {
+  position: absolute;
+  left: 18px;
+  top: 14px;
+}
+#region {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+#clock {
+  font-size: 14px;
+  color: var(--muted);
+}
+#ai {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+#dash {
+  position: absolute;
+  left: 50%;
+  bottom: 72px;
+  transform: translateX(-50%);
+  width: min(360px, calc(100vw - 32px));
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: var(--glass);
+  backdrop-filter: blur(6px);
+}
+.speedrow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+#speed {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.unit {
+  color: var(--muted);
+  font-size: 14px;
+}
+#mode {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.bar {
+  position: relative;
+  height: 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.14);
+  margin-top: 8px;
+  overflow: hidden;
+}
+.bar label {
+  position: absolute;
+  right: 6px;
+  top: -1px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.7);
+}
+#flowbar {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--teal), var(--pink));
+  transition: width 0.15s;
+}
+#pumpbar {
+  position: absolute;
+  top: 0;
+  height: 100%;
+}
+#pumpbar.good {
+  background: #8dffb0;
+}
+#pumpbar.bad {
+  background: #ff8b8b;
+}
+.bar.pump::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.5);
+}
+#sail {
+  font-size: 12px;
+  color: var(--sun);
+  margin-top: 6px;
+  min-height: 0;
+}
+#hint {
+  position: absolute;
+  left: 50%;
+  bottom: 200px;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--glass);
+  font-size: 14px;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#pops {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 22%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.pop {
+  animation: pop 1.7s ease-out forwards;
+  font-weight: 800;
+  text-align: center;
+  padding: 0 16px;
+}
+.pop.big {
+  font-size: clamp(28px, 5vw, 54px);
+  letter-spacing: 0.04em;
+}
+.pop.small {
+  font-size: 18px;
+  font-weight: 600;
+}
+.pop.region {
+  font-size: clamp(22px, 3.4vw, 34px);
+  color: #ffe7b0;
+  animation-duration: 3.6s;
+}
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.92);
+  }
+  12% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+  25% {
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-24px);
+  }
+}
+#help {
+  position: absolute;
+  right: 16px;
+  top: 14px;
+  width: min(380px, calc(100vw - 32px));
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--glass);
+  font-size: 13px;
+  line-height: 1.45;
+}
+#help h3 {
+  margin: 6px 0 2px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+#help p {
+  margin: 2px 0;
+}
+.hidden {
+  display: none;
+}
+
+#dialog {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translate(-50%, 140%);
+  width: min(620px, calc(100vw - 32px));
+  border-radius: 20px;
+  background: rgba(8, 24, 34, 0.86);
+  backdrop-filter: blur(8px);
+  padding: 14px 16px;
+  transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+  z-index: 5;
+}
+#dialog.open {
+  transform: translate(-50%, 0);
+}
+#dialog .head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#dialog .who {
+  font-weight: 700;
+  font-size: 18px;
+}
+#dialog .role {
+  font-size: 12px;
+  color: var(--muted);
+}
+#dialog .badge {
+  margin-left: auto;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+#dialog button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  cursor: pointer;
+}
+#dialog .close {
+  background: transparent;
+  font-size: 16px;
+  padding: 4px 8px;
+}
+#dialog .log {
+  max-height: 34vh;
+  overflow-y: auto;
+  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#dialog .log .npc {
+  font-size: 16px;
+  line-height: 1.4;
+}
+#dialog .log .you {
+  align-self: flex-end;
+  color: #8fe9df;
+  font-style: italic;
+  font-size: 14px;
+}
+#dialog .typing {
+  color: var(--teal);
+}
+#dialog .chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+#dialog .chips button {
+  background: rgba(63, 214, 200, 0.16);
+  border: 1px solid rgba(63, 214, 200, 0.4);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+#dialog .chips button:hover {
+  background: rgba(63, 214, 200, 0.35);
+}
+#dialog form {
+  display: flex;
+  gap: 6px;
+}
+#dialog input {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 10px 12px;
+  outline: none;
+}
+#dialog input:focus {
+  border-color: var(--teal);
+}
+#dialog form button {
+  background: var(--teal);
+  color: #04232a;
+  border-radius: 12px;
+  padding: 0 14px;
+  font-weight: 600;
+}
+#dialog form .mic {
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+}
+#dialog form .mic.on {
+  background: #ff6b6b;
+  color: #fff;
+}
+#splash [hidden] {
+  display: none;
+}
+
+#splash {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at 50% 60%, rgba(10, 40, 55, 0.35), rgba(5, 18, 26, 0.75));
+  z-index: 10;
+  transition: opacity 0.6s;
+  padding: 16px;
+}
+#splash.gone {
+  opacity: 0;
+  pointer-events: none;
+}
+#splash .card {
+  text-align: center;
+  max-width: 680px;
+}
+#splash h1 {
+  /* The gradient only paints inside the h1's box, so the word must fit the card (else "SKIMWORLI"). */
+  font-size: clamp(36px, 8.5vw, 80px);
+  margin: 0;
+  letter-spacing: 0.08em;
+  background: linear-gradient(180deg, #ffffff, #9ff3ea 60%, #3fd6c8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 6px 24px rgba(63, 214, 200, 0.35));
+}
+#splash .tag {
+  font-size: 18px;
+  color: var(--muted);
+}
+#splash #play {
+  margin: 18px 0;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  padding: 14px 32px;
+  border-radius: 999px;
+  border: 0;
+  background: linear-gradient(90deg, var(--teal), #8ff7c4);
+  color: #04232a;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(63, 214, 200, 0.35);
+}
+#splash .small {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+#splash #play:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+#splash #vrerr {
+  color: #ffd2a8;
+  font-size: 14px;
+  margin: 0 0 8px;
+}
+#splash #flat,
+#splash #mic {
+  font: inherit;
+  font-size: 14px;
+  background: none;
+  border: 1px solid rgba(159, 243, 234, 0.4);
+  color: #c9f5ef;
+  border-radius: 999px;
+  padding: 8px 18px;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+@media (max-width: 640px) {
+  #hint {
+    bottom: 140px;
+    font-size: 12px;
+  }
+  #speed {
+    font-size: 38px;
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "skimworld",
+      "runtimeExecutable": "zsh",
+      "runtimeArgs": [
+        "-ic",
+        "npm run dev:https"
+      ],
+      "port": 5173,
+      "url": "https://localhost:5173"
+    },
+    {
+      "name": "skimworld-web-http",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--port",
+        "5199",
+        "--strictPort"
+      ],
+      "port": 5199
+    }
+  ]
+}
